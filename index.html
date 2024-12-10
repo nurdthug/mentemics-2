@@ -1,0 +1,255 @@
+<html><head><base href="." />
+<title>Mentemics Prototype Simulation</title>
+<style>
+:root {
+  --primary: #2a4365;
+  --secondary: #4a5568;
+  --accent: #48bb78;
+  --background: #f7fafc;
+  --text: #1a202c;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.input-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--secondary);
+  border-radius: 0.5rem;
+  min-height: 100px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+.output-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.module {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease-out;
+}
+
+.module.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.module h3 {
+  color: var(--primary);
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loading {
+  display: none;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.feedback-btn {
+  background: var(--secondary);
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Mentemics Prototype</h1>
+  <p>Share your emotional scenario below for personalized insights and recommendations.</p>
+  
+  <div class="input-section">
+    <textarea id="emotionalInput" placeholder="Describe how you're feeling... (e.g., 'I feel stressed and overwhelmed by work')"></textarea>
+    <button onclick="analyzeEmotion()">Analyze</button>
+  </div>
+  
+  <div class="loading" id="loading">
+    <svg class="pulse" width="50" height="50" viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="20" fill="none" stroke="var(--primary)" stroke-width="4"/>
+    </svg>
+    <p>Analyzing your input...</p>
+  </div>
+  
+  <div class="output-section">
+    <div class="module" id="physiology">
+      <h3>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        Physiological Insight
+      </h3>
+      <p id="physiologyContent"></p>
+      <div class="feedback-buttons">
+        <button class="feedback-btn" onclick="provideFeedback('physiology', 'helpful')">Helpful</button>
+        <button class="feedback-btn" onclick="provideFeedback('physiology', 'not-helpful')">Not Helpful</button>
+      </div>
+    </div>
+    
+    <div class="module" id="nutrition">
+      <h3>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+          <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6z"/>
+        </svg>
+        Nutrition Advice
+      </h3>
+      <p id="nutritionContent"></p>
+      <div class="feedback-buttons">
+        <button class="feedback-btn" onclick="provideFeedback('nutrition', 'helpful')">Helpful</button>
+        <button class="feedback-btn" onclick="provideFeedback('nutrition', 'not-helpful')">Not Helpful</button>
+      </div>
+    </div>
+    
+    <div class="module" id="communication">
+      <h3>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Communication Strategy
+      </h3>
+      <p id="communicationContent"></p>
+      <div class="feedback-buttons">
+        <button class="feedback-btn" onclick="provideFeedback('communication', 'helpful')">Helpful</button>
+        <button class="feedback-btn" onclick="provideFeedback('communication', 'not-helpful')">Not Helpful</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const responses = {
+  stress: {
+    physiology: "Stress activates your body's fight-or-flight response, increasing cortisol levels and affecting focus. This can lead to elevated heart rate, shallow breathing, and muscle tension.",
+    nutrition: "Consider magnesium-rich foods like spinach, dark chocolate, or almonds to help lower cortisol levels. B-vitamins found in whole grains can support your nervous system.",
+    communication: "Use clear and calming phrases like 'Can we prioritize tasks together?' or 'I need to establish better boundaries with my workload.'"
+  },
+  anxiety: {
+    physiology: "Anxiety triggers your sympathetic nervous system, leading to increased adrenaline production and heightened alertness.",
+    nutrition: "Foods rich in omega-3 fatty acids like salmon and seeds can help reduce anxiety. Avoid caffeine and processed sugars.",
+    communication: "Practice expressing needs with 'I' statements, such as 'I feel overwhelmed when...' and 'I need support with...'"
+  },
+  sadness: {
+    physiology: "Sadness can lower serotonin levels and energy metabolism, affecting sleep patterns and appetite.",
+    nutrition: "Incorporate foods rich in tryptophan like turkey, eggs, and cheese to support serotonin production.",
+    communication: "Share feelings using specific examples: 'I'm feeling down because...' and ask directly for what you need."
+  }
+};
+
+function analyzeEmotion() {
+  const input = document.getElementById('emotionalInput').value.toLowerCase();
+  const loading = document.getElementById('loading');
+  
+  // Reset and show loading state
+  loading.style.display = 'block';
+  document.querySelectorAll('.module').forEach(module => {
+    module.classList.remove('visible');
+  });
+  
+  setTimeout(() => {
+    // Analyze input for keywords
+    let responseType = 'stress'; // default
+    if (input.includes('anxious') || input.includes('worry')) {
+      responseType = 'anxiety';
+    } else if (input.includes('sad') || input.includes('down')) {
+      responseType = 'sadness';
+    }
+    
+    // Update content
+    document.getElementById('physiologyContent').textContent = responses[responseType].physiology;
+    document.getElementById('nutritionContent').textContent = responses[responseType].nutrition;
+    document.getElementById('communicationContent').textContent = responses[responseType].communication;
+    
+    // Hide loading and show modules with animation
+    loading.style.display = 'none';
+    document.querySelectorAll('.module').forEach((module, index) => {
+      setTimeout(() => {
+        module.classList.add('visible');
+      }, index * 200);
+    });
+  }, 1500);
+}
+
+function provideFeedback(module, type) {
+  const feedbackBtn = event.target;
+  feedbackBtn.style.background = type === 'helpful' ? 'var(--accent)' : '#e53e3e';
+  feedbackBtn.textContent = type === 'helpful' ? '✓ Helpful' : '× Not Helpful';
+  
+  // Disable both buttons in the module
+  const buttons = feedbackBtn.parentElement.getElementsByTagName('button');
+  Array.from(buttons).forEach(btn => {
+    btn.disabled = true;
+  });
+  
+  // In a real application, you would send this feedback to your server
+  console.log(`Feedback received for ${module}: ${type}`);
+}
+
+// Initialize with example scenario
+window.onload = () => {
+  document.getElementById('emotionalInput').value = "I feel stressed and overwhelmed by work.";
+  analyzeEmotion();
+};
+</script>
+</body></html>
